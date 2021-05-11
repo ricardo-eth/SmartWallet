@@ -24,10 +24,14 @@ contract SmartWallet is Ownable {
     event Withdrew(address indexed recipient, uint256);
     event Transfered(address indexed sender, address indexed recipient, uint256 amount);
     event VipSet(address indexed account, bool status);
+    
+    
     // Exercice 2
     // Ajouter un event Approval qui sera emit des qu'un approval aura été autorisé
     // il faudra qu'on y retrouve comme information l'ower des fonds, le spender et la somme autorisée
     // à etre depensée.
+    
+    event Approval(address indexed owner_, address indexed spender, uint256 _allowances);
 
     // constructor
     constructor(address owner_, uint256 tax_) Ownable(owner_) {
@@ -67,6 +71,7 @@ contract SmartWallet is Ownable {
     // dépenser en son nom l'equivalent de amount
     // il faudra manipuler pour cela le double mapping _allowances
     function approve(address spender, uint256 amount) public {
+         _approve(msg.sender, spender, amount);
     }
 
     function transfer(address recipient, uint256 amount) public {
@@ -83,8 +88,11 @@ contract SmartWallet is Ownable {
     // Il faudra emettre un event Transfered si le transfer est effectué avec succès
     function transferFrom(address from, address to, uint256 amount) public {
         // ecriture dans un registre comptable
+        uint256 currentAllowance = _allowances[from][to];
+        require(currentAllowance >= amount, "ERC20: transfer amount exceeds allowance");
+        _approve(from, to, currentAllowance - amount);
+     
     }
-
 
     function withdrawProfit() public onlyOwner {
         require(_profit > 0, "SmartWallet: can not withdraw 0 ether");
@@ -103,7 +111,6 @@ contract SmartWallet is Ownable {
         emit VipSet(account, _vipMembers[account]);
     }
 
-
     function balanceOf(address account) public view returns (uint256) {
         return _balances[account];
     }
@@ -112,7 +119,7 @@ contract SmartWallet is Ownable {
     // Implementer cette fonction pour qu'elle nous retourne ce que spender peut
     // encore dépenser en tant owner_.
     function allowance(address owner_, address spender) public view returns (uint256 remaining) {
-
+        return _allowances[owner_][spender];
     }
 
     function total() public view returns (uint256) {
@@ -155,6 +162,14 @@ contract SmartWallet is Ownable {
         _totalProfit += fees;
         payable(msg.sender).sendValue(newAmount);
         emit Withdrew(msg.sender, newAmount);
+    }
+    
+    function _approve(address owner, address spender, uint256 amount) private {
+        require(owner != address(0), "ERC20: approve from the zero address");
+        require(spender != address(0), "ERC20: approve to the zero address");
+
+        _allowances[owner][spender] = amount;
+        emit Approval(owner, spender, amount);
     }
 
 
