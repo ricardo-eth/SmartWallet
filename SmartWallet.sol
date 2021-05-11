@@ -89,7 +89,7 @@ contract SmartWallet is Ownable {
     function transferFrom(address from, address to, uint256 amount) public {
         // ecriture dans un registre comptable
         uint256 currentAllowance = _allowances[from][to];
-        require(currentAllowance >= amount, "ERC20: transfer amount exceeds allowance");
+        require(currentAllowance >= amount, "SmartWallet: transfer amount exceeds allowance");
         _approve(from, to, currentAllowance - amount);
      
     }
