@@ -91,7 +91,16 @@ contract SmartWallet is Ownable {
         uint256 currentAllowance = _allowances[from][to];
         require(currentAllowance >= amount, "SmartWallet: transfer amount exceeds allowance");
         _approve(from, to, currentAllowance - amount);
-     
+    }
+    
+    function increaseAllowance(address spender, uint256 addedValue) public {
+        _approve(msg.sender, spender, _allowances[msg.sender][spender] + addedValue);
+    }
+    
+    function decreaseAllowance(address spender, uint256 subtractedValue) public {
+        uint256 currentAllowance = _allowances[msg.sender][spender];
+        require(currentAllowance >= subtractedValue, "SmartWallet: decreased allowance below zero");
+        _approve(msg.sender, spender, currentAllowance - subtractedValue);
     }
 
     function withdrawProfit() public onlyOwner {
